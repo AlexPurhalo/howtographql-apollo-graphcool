@@ -1,0 +1,3 @@
+targets:
+  graphql-test-ap: shared-us-west-2/cjaegnye02bqh014085ya1kam
+  default: graphql-test-ap
