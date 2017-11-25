@@ -1,17 +1,15 @@
 import React, { Component } from 'react'
+import { graphql } from 'react-apollo'
+import gql from 'graphql-tag'
+
 import Link from './Link'
 
 class LinkList extends Component {
 	render() {
-		const linksToRender = [{
-			id: '1',
-			description: 'The Coolest GraphQL Backend 😎',
-			url: 'https:///www.graph.cool'
-		}, {
-			id: '2',
-			description: 'The Best GraphQL Client',
-			url: 'http://dev.apollodata.com/'
-		}]
+		const { loading, error, allLinks: linksToRender } = this.props.allLinksQuery
+		
+		if (loading) return <div>...loading</div>
+		if (error) return <div>server error</div>
 		
 		return (
 			<div>
@@ -23,4 +21,16 @@ class LinkList extends Component {
 	}
 }
 
-export default LinkList
+const ALL_LINKS_QUERY = gql`
+  query AllLinksQuery {
+    allLinks {
+      id
+      createdAt
+      url
+      description
+    }
+  }
+`
+
+
+export default graphql(ALL_LINKS_QUERY, { name: 'allLinksQuery' })(LinkList)
