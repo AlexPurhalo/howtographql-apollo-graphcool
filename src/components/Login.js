@@ -1,5 +1,8 @@
 import React, { Component } from 'react'
-// import { GC_USER_TO_ID, GC_AUTH_TOKEN } from '../constants'
+import { graphql, compose } from 'react-apollo'
+import gql                  from 'graphql-tag'
+
+import { GC_USER_ID, GC_AUTH_TOKEN } from '../constants'
 
 class Login extends Component {
 	
@@ -15,8 +18,32 @@ class Login extends Component {
 	
 	handleSubmitForm = (e) => {
 		e.preventDefault()
-
-		console.log('submitting')
+		
+		const saveUserData = (id, token) => {
+			localStorage.setItem(GC_USER_ID, id)
+			localStorage.setItem(GC_AUTH_TOKEN, token)
+		}
+		
+		const confirm = async () => {
+			const { login, name, email, password }                 = this.state
+			const { authenticateUserMutation, signupUserMutation } = this.props
+			const variables = { email, name, password }
+			
+			if (login) {
+				const result = await authenticateUserMutation({ variables })
+				saveUserData('x', result.data.authenticateUser.id)
+				
+			} else {
+				const result = await signupUserMutation({ variables })
+				const { id, token } = result.data.signupUser
+				
+				saveUserData(id, token)
+			}
+			
+			this.props.history.push(`/`)
+		}
+		
+		return confirm()
 	}
 	
 	handleSwitchLogin = () =>
@@ -29,7 +56,7 @@ class Login extends Component {
 		} = this
 		
 		return (
-			<form onSubmit={e => handleSubmitForm(e)}>
+				<form onSubmit={e => handleSubmitForm(e)}>
 				<h4 className="mv3">{login ? 'Login' : 'Sign Up'}</h4>
 				
 				<div className="flex flex-column">
@@ -71,4 +98,31 @@ class Login extends Component {
 	}
 }
 
-export default Login
+const SIGNUP_USER_MUTATION = gql`
+  mutation SignupUserMutation($email: String!, $password: String!, $name: String!) {
+    signupUser(
+      email: $email,
+      password: $password,
+      name: $name
+    ) {
+      id
+      token
+    }
+  }
+`
+
+const AUTHENTICATE_USER_MUTATION = gql`
+  mutation AuthenticateUserMutation($email: String!, $password: String!) {
+    authenticateUser(
+      email: $email,
+      password: $password
+    ) {
+      token
+    }
+  }
+`
+
+export default compose(
+	graphql(SIGNUP_USER_MUTATION, { name: 'signupUserMutation' }),
+	graphql(AUTHENTICATE_USER_MUTATION, { name: 'authenticateUserMutation' })
+)(Login)
