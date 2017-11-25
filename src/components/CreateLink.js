@@ -1,8 +1,8 @@
 import React, { Component } from "react"
 import { graphql }          from 'react-apollo'
-import gql                  from 'graphql-tag'
 
-import { GC_USER_ID } from '../constants'
+import { GC_USER_ID }                            from '../constants'
+import { CREATE_LINK_MUTATION, ALL_LINKS_QUERY } from '../queries'
 
 class CreateLink extends Component {
 	state = {
@@ -12,8 +12,6 @@ class CreateLink extends Component {
 	
 	handleChangeField = ({ name, value }) =>
 		this.setState({ [`${name}`]: value })
-	
-	
 	
 	handleSubmitForm = (e) => {
 		e.preventDefault()
@@ -33,6 +31,14 @@ class CreateLink extends Component {
 					description,
 					url,
 					postedById
+				},
+				update: (store, { data: { createLink: allLinks } }) => {
+					const storeData = store.readQuery({ query: ALL_LINKS_QUERY})
+					
+					store.writeQuery({
+						query: ALL_LINKS_QUERY,
+						data: { ...storeData, allLinks }
+					})
 				}
 			})
 			
@@ -79,23 +85,6 @@ class CreateLink extends Component {
 	}
 }
 
-const CREATE_LINK_MUTATION = gql`
-  mutation CreateLinkMutation($description: String!, $url: String!, $postedById: ID!) {
-    createLink(
-      description: $description,
-      url: $url,
-      postedById: $postedById
-    ) {
-      id
-      createdAt
-      url
-      description
-      postedBy {
-        id
-        name
-      }
-    }
-  }
-`
+
 
 export default graphql(CREATE_LINK_MUTATION, { name: 'createLinkMutation' })(CreateLink)
