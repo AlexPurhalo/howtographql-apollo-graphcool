@@ -1,7 +1,7 @@
 import React, { Component } from "react"
 import { graphql }          from 'react-apollo'
 
-import { GC_USER_ID }                            from '../constants'
+import { GC_USER_ID, LINKS_PER_PAGE }            from '../constants'
 import { CREATE_LINK_MUTATION, ALL_LINKS_QUERY } from '../queries'
 
 class CreateLink extends Component {
@@ -33,11 +33,19 @@ class CreateLink extends Component {
 					postedById
 				},
 				update: (store, { data: { createLink: allLinks } }) => {
-					const storeData = store.readQuery({ query: ALL_LINKS_QUERY})
+					const first   = LINKS_PER_PAGE
+					const skip    = 0
+					const orderBy = 'createdAt_DESC'
+					
+					const storeData = store.readQuery({
+						query: ALL_LINKS_QUERY,
+						variables: { first, skip, orderBy }
+					})
 					
 					store.writeQuery({
 						query: ALL_LINKS_QUERY,
-						data: { ...storeData, allLinks }
+						data: { ...storeData, allLinks },
+						variables: { first, skip, orderBy }
 					})
 				}
 			})
